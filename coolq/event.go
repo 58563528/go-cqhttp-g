@@ -33,6 +33,8 @@ func ToFormattedMessage(e []message.IMessageElement, groupID int64, isRaw ...boo
 	return
 }
 
+var PrivateMessageEventCallback func(id int64, msg string)
+
 func (bot *CQBot) privateMessageEvent(c *client.QQClient, m *message.PrivateMessage) {
 	bot.checkMedia(m.Elements)
 	cqm := ToStringMessage(m.Elements, 0, true)
@@ -44,6 +46,7 @@ func (bot *CQBot) privateMessageEvent(c *client.QQClient, m *message.PrivateMess
 		id = bot.InsertPrivateMessage(m)
 	}
 	log.Infof("收到好友 %v(%v) 的消息: %v (%v)", m.Sender.DisplayName(), m.Sender.Uin, cqm, id)
+	PrivateMessageEventCallback(m.Sender.Uin, cqm)
 	fm := MSG{
 		"post_type": func() string {
 			if m.Sender.Uin == bot.Client.Uin {
