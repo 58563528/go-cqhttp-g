@@ -33,7 +33,7 @@ func ToFormattedMessage(e []message.IMessageElement, groupID int64, isRaw ...boo
 	return
 }
 
-var PrivateMessageEventCallback func(id int64, msg string)
+var PrivateMessageEventCallback func(uid int64, msg string)
 
 func (bot *CQBot) privateMessageEvent(c *client.QQClient, m *message.PrivateMessage) {
 	bot.checkMedia(m.Elements)
@@ -77,6 +77,8 @@ func (bot *CQBot) privateMessageEvent(c *client.QQClient, m *message.PrivateMess
 	}
 }
 
+var GroupMessageEventCallback func(gid int64, uid int64, msg string)
+
 func (bot *CQBot) groupMessageEvent(c *client.QQClient, m *message.GroupMessage) {
 	bot.checkMedia(m.Elements)
 	for _, elem := range m.Elements {
@@ -106,6 +108,7 @@ func (bot *CQBot) groupMessageEvent(c *client.QQClient, m *message.GroupMessage)
 		id = bot.InsertGroupMessage(m)
 	}
 	log.Infof("收到群 %v(%v) 内 %v(%v) 的消息: %v (%v)", m.GroupName, m.GroupCode, m.Sender.DisplayName(), m.Sender.Uin, cqm, id)
+	GroupMessageEventCallback(m.GroupCode, m.Sender.Uin, cqm)
 	gm := bot.formatGroupMessage(m)
 	if gm == nil {
 		return
